@@ -22,6 +22,7 @@ function preload() {
     game.load.image('ground', 'assets/platform.png');
     game.load.image('star', 'assets/star.png');
     game.load.image('bullet', 'assets/bullet.png');
+    game.load.image('enemyBullet', 'assets/enemyBullet.png');
     game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
     game.load.spritesheet('baddie', 'assets/baddie.png', 32, 32);
     game.load.atlasJSONHash('flyer', 'assets/flyer.png', 'assets/flyer.json');
@@ -42,6 +43,10 @@ var bullets;
 var bulletTime = 0;
 var bullet;
 
+var enemyBullet;
+var enemyBullets; 
+var enemyBulletTime = 0; 
+
 var stars;
 var score = 0;
 var scoreText;
@@ -55,6 +60,8 @@ var animationA
 var speedDirA
 var animationB
 var speedDirB
+var clearFlyerOne
+var clearFlyerTwo
 var playerFacingLeft = false
 
 function create() {
@@ -142,13 +149,16 @@ function create() {
     baddies.forEach(function(baddie){
         baddie.animations.add('badleft', [0, 1], 10, true);
         baddie.animations.add('badright', [2, 3], 10, true);
+        baddie.hp = 3
     })
 
     // flyers
 
     flyers = game.add.physicsGroup();
 
-    flyerOne = flyers.create(500, game.world.height - 600, 'flyer');
+    flyerOne = flyers.create(500, game.world.height - 500, 'flyer');
+
+    flyerTwo = flyers.create(800, game.world.height - 400, 'flyer');
 
     flyers.setAll('enableBody', true);
     flyers.physicsBodyType = Phaser.Physics.ARCADE;
@@ -156,6 +166,11 @@ function create() {
     flyers.forEach(function(flyer){
         flyer.animations.add('flyleft', [0, 1, 2, 3, 4, 5, 6], 10, true);
         flyer.animations.add('flyright', [0, 1, 2, 3, 4, 5, 6], 10, true);
+        flyer.hp = 5
+        flyer.body.setSize(100, 60, 0, -15);
+        flyer.anchor.x = 0.5
+        flyer.anchor.y = 0.5
+        flyer.name = 'flyer'
     })
 
     bullets = game.add.group();
@@ -171,6 +186,15 @@ function create() {
         b.checkWorldBounds = true;
         b.events.onOutOfBounds.add(resetBullet, this);
     }
+
+    enemyBullets = game.add.group();
+    enemyBullets.enableBody = true; 
+    enemyBullets.physicsBodyType = Phaser.Physics.ARCADE; 
+    enemyBullets.createMultiple(30, 'enemyBullet');
+    enemyBullets.setAll('anchor.x', 0.5);
+    enemyBullets.setAll('anchor.y', 1);
+    enemyBullets.setAll('outOfBoundsKill', true);
+    enemyBullets.setAll('checkWorldBounds', true);
 
 
 
@@ -226,7 +250,7 @@ function create() {
     //  Our controls.
     cursors = game.input.keyboard.createCursorKeys();
     game.input.keyboard.addKeyCapture([ Phaser.Keyboard.SPACEBAR ]);
-
+    speedDirA = -50;
     setInterval(function() {
         if (goLeftA === true) {
             // debugger
@@ -240,7 +264,7 @@ function create() {
         }
 
     }, 1000) 
-
+    speedDirB = 50;
     setInterval(function() {
         if (goLeftB === true) {
             // debugger
@@ -254,6 +278,14 @@ function create() {
         }
 
     }, 1250) 
+
+    clearFlyerOne = setInterval(function() {
+        fireEnemyBullet(flyerOne)
+    }, 500)
+
+    clearFlyerTwo = setInterval(function() {
+        fireEnemyBullet(flyerTwo)
+    }, 650)
 }
 
 
@@ -263,10 +295,19 @@ function update() {
     //  Collide the player and the stars with the platforms
     game.physics.arcade.collide(player, platforms);
     game.physics.arcade.collide(baddies, platforms);
+    game.physics.arcade.collide(flyers, platforms);
     game.physics.arcade.collide(stars, platforms);
     game.physics.arcade.collide(player, baddies, killPlayer);
+    game.physics.arcade.collide(player, flyers, killPlayer);
     game.physics.arcade.collide(bullets, platforms, resetBullet);
+
+    game.physics.arcade.collide(bullets, enemyBullets, bulletOnBullet);
+
     game.physics.arcade.overlap(bullets, baddies, collisionHandler, null, this);
+
+    game.physics.arcade.overlap(enemyBullets, player, killPlayerFromBullet, null, this);
+
+    game.physics.arcade.overlap(bullets, flyers, collisionHandler, null, this);
 
     //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
     game.physics.arcade.overlap(player, stars, collectStar, null, this);
@@ -278,7 +319,7 @@ function update() {
 
 
     baddieOne.animations.play(animationA);
-    baddieOne.body.velocity.x = speedDirA;
+    baddieOne.body.velocity.x = speedDirA * 1.5;
 
     baddieTwo.animations.play('badleft');
     if (baddieTwo.body.touching.down) {
@@ -287,10 +328,34 @@ function update() {
 
 
     baddieThree.animations.play(animationB);
-    baddieThree.body.velocity.x = speedDirB;
+    baddieThree.body.velocity.x = speedDirB * 1.5;
 
     flyerOne.animations.play('flyleft');
+    flyerOne.body.velocity.x = speedDirB;
+    flyerOne.body.velocity.y = speedDirA;
+    if (speedDirB > 0) {
+        flyerOne.scale.x = -1;
+    } else {
+        flyerOne.scale.x = 1;
+    }
 
+    if (flyerOne.hp <= 0) {
+        clearInterval(clearFlyerOne)
+    }
+
+
+    flyerTwo.animations.play('flyleft');
+    flyerTwo.body.velocity.x = speedDirA;
+    flyerTwo.body.velocity.y = speedDirB;
+    if (speedDirA > 0) {
+        flyerTwo.scale.x = -1;
+    } else {
+        flyerTwo.scale.x = 1;
+    }
+
+    if (flyerTwo.hp <= 0) {
+        clearInterval(clearFlyerTwo)
+    }
 
     if (player.invincible === true) {
         player.tint = 0xff0000;
@@ -298,8 +363,7 @@ function update() {
         player.tint = 0xffffff;
     }
 
-    if (cursors.left.isDown)
-    {
+    if (cursors.left.isDown) {
         //  Move to the left
         player.body.velocity.x = -150;
 
@@ -307,13 +371,9 @@ function update() {
 
         playerFacingLeft = true
 
-
         player.scale.x = 1;
 
-        debugger
-    }
-    else if (cursors.right.isDown)
-    {
+    } else if (cursors.right.isDown) {
         //  Move to the right
         player.body.velocity.x = 150;
 
@@ -322,107 +382,147 @@ function update() {
         playerFacingLeft = false
 
         player.scale.x = -1;
-    }
-    else
-    {
+
+    } else {
 
         if (player.animations.currentAnim.name === 'attack' || player.animations.currentAnim.name === 'hit') {
-        setTimeout(function() {
-          player.animations.play('idle');  
-      }, 300) 
-    } else {
-        player.animations.play('idle');
+            setTimeout(function() {
+                player.animations.play('idle');  
+            }, 300) 
+        } else {
+            player.animations.play('idle');
+        }
+
     }
-
-
-    }
-
-    // if (playerFacingLeft === true) {
-    //     player.scale.x *= -1;
-    // } else {
-    //     player.scale.x = -1;
-    // }
-
 
     
     //  Allow the player to jump if they are touching the ground.
-    if (cursors.up.isDown && player.body.touching.down)
-    {
+    if (cursors.up.isDown && player.body.touching.down) {
         player.body.velocity.y = -350;
     }
 
-    if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
-    {
+    if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
         fireBullet();
     }
-
-}
-
-function collectStar (player, star) {
-    
-    // Removes the star from the screen
-    star.kill();
-
-    //  Add and update the score
-    score += 10;
-    scoreText.text = 'Score: ' + score;
-
-}
-
-function killPlayer(player, baddie) { 
-    baddie.body.velocity.x = 0   
-    if (!player.invincible) {
-        player.animations.play('hit');
-        hp -= 1;
-        hpText.text = 'Hp: ' + hp;
-        if ( hp <= 0) {
-        player.kill();
-        }
-        toggleInvincible();             
-        game.time.events.add(2000, toggleInvincible, this);
     }
-}
 
-function toggleInvincible() {    
-    player.invincible = !player.invincible;
-}
+    function collectStar (player, star) {
+        
+        // Removes the star from the screen
+        star.kill();
 
-function fireBullet () {
+        //  Add and update the score
+        score += 10;
+        scoreText.text = 'Score: ' + score;
 
-    if (game.time.now > bulletTime) {
-        bullet = bullets.getFirstExists(false);
+    }
 
-        if (bullet) {
-            player.animations.play('attack');
-            bullet.reset(player.x , player.y - 15);
-            if (playerFacingLeft === true) {
-                bullet.body.velocity.x = -300;
-                bulletTime = game.time.now + 150;
-            } else {
-                bullet.body.velocity.x = 300;
-                bulletTime = game.time.now + 150;
+    function killPlayer(player, baddieOrFlyer) { 
+        baddieOrFlyer.body.velocity.x = 0
+        baddieOrFlyer.body.velocity.y = 0 
+        if (!player.invincible) {
+            player.animations.play('hit');
+            hp -= 1;
+            hpText.text = 'Hp: ' + hp;
+            if ( hp <= 0) {
+            player.kill();
+            }
+            toggleInvincible();             
+            game.time.events.add(2000, toggleInvincible, this);
+        }
+    }
+
+    function killPlayerFromBullet(player, enemyBullet) { 
+        enemyBullet.kill();
+        if (!player.invincible) {
+            player.animations.play('hit');
+            hp -= 1;
+            hpText.text = 'Hp: ' + hp;
+            if ( hp <= 0) {
+            player.kill();
+            }
+            toggleInvincible();             
+            game.time.events.add(2000, toggleInvincible, this);
+        }
+    }
+
+    function toggleInvincible() {    
+        player.invincible = !player.invincible;
+    }
+
+    function fireBullet () {
+
+        if (game.time.now > bulletTime) {
+            bullet = bullets.getFirstExists(false);
+
+            if (bullet) {
+                player.animations.play('attack');
+                bullet.reset(player.x , player.y - 15);
+                if (playerFacingLeft === true) {
+                    bullet.body.velocity.x = -300;
+                    bulletTime = game.time.now + 150;
+                } else {
+                    bullet.body.velocity.x = 300;
+                    bulletTime = game.time.now + 150;
+                }
             }
         }
     }
-}
+
+    function fireEnemyBullet (enemy) {
+
+        if (game.time.now > enemyBulletTime) {
+            enemyBullet = enemyBullets.getFirstExists(false);
+
+            if (enemyBullet) {
+                // player.animations.play('attack');
+                enemyBullet.reset(enemy.x , enemy.y - 15);
+                enemyBullet.body.velocity.x = enemy.body.velocity.x;
+                if (player.position.y > (enemy.position.y + 100)) {
+                    if (enemy.body.velocity.y > 0) {
+                        enemyBullet.body.velocity.y = enemy.body.velocity.y;
+                    } else {
+                        enemyBullet.body.velocity.y = (enemy.body.velocity.y * -1);
+                    }
+                }
+                enemyBulletTime = game.time.now + 150;
+            }
+        }
+    }
 
 
-function resetBullet (bullet) {
+    function resetBullet (bullet) {
 
-    bullet.kill();
+        bullet.kill();
 
-}
+    }
 
-
-function collisionHandler (bullet, baddie) {
-
-    bullet.kill();
-    baddie.kill();
-    score += 100;
-    scoreText.text = 'Score: ' + score;
+    function bulletOnBullet (bullet, enemyBullet) {
+        bullet.kill();
+        enemyBullet.kill();
+    }
 
 
-}
+    function collisionHandler (bullet, baddieOrFlyer) {
+
+        bullet.kill();
+        baddieOrFlyer.tint = 0xff0000;
+        setInterval(function(){
+            baddieOrFlyer.tint = 0xffffff;
+        }, 200)
+        baddieOrFlyer.hp -= 1
+        if (baddieOrFlyer.hp <= 0) {
+            baddieOrFlyer.kill();
+            if (baddieOrFlyer.name === 'flyer') {
+                score += 200;
+                scoreText.text = 'Score: ' + score;
+            } else {
+                score += 100;
+                scoreText.text = 'Score: ' + score;
+            }
+        }
+        
+    }
 
 
 
