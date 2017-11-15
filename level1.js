@@ -6,11 +6,17 @@ function preload() {
 
     game.load.image('sky', 'assets/sky.png');
     game.load.image('ground', 'assets/platform.png');
+    game.load.image('ground2', 'assets/platform2.png')
+    game.load.image('vertPlatform', 'assets/vertplatform.png')
+    game.load.image('vertPlatformShort', 'assets/vertplatformshort.png')
     game.load.image('star', 'assets/star.png');
     game.load.image('bullet', 'assets/bullet.png');
     game.load.image('enemyBullet', 'assets/enemyBullet.png');
     game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
-    game.load.spritesheet('baddie', 'assets/baddie.png', 32, 32);
+    // game.load.spritesheet('baddie', 'assets/baddie.png', 32, 32);
+
+    game.load.atlasJSONHash('baddie', 'assets/baddie.png', 'assets/baddie.json');
+
     game.load.atlasJSONHash('flyer', 'assets/flyer.png', 'assets/flyer.json');
 
     game.load.atlasJSONHash('char', 'assets/char.png', 'assets/char.json');
@@ -51,9 +57,9 @@ var hpText;
 var goLeftA = false
 var goLeftB = true
 var animationA
-var speedDirA
+var speedDirA = 0
 var animationB
-var speedDirB
+var speedDirB = 0
 var clearFlyerOne
 var clearFlyerTwo
 var playerFacingLeft = false
@@ -69,63 +75,120 @@ function create() {
 
     //  The platforms group contains the ground and the 2 ledges we can jump on
     platforms = game.add.group();
+    platforms2 = game.add.group();
+    vertPlatforms = game.add.group();
+    vertPlatformsShort = game.add.group();
 
     //  We will enable physics for any object that is created in this group
     platforms.enableBody = true;
+    platforms2.enableBody = true;
+    vertPlatforms.enableBody = true;
+    vertPlatformsShort.enableBody = true;
 
     // Here we create the ground.
     var ground = platforms.create(0, game.world.height - 80, 'ground');
-
-    //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
-    ground.scale.setTo(4, 3);
-
-    //  This stops it from falling away when you jump on it
+    // ground.scale.setTo(1, 1);
     ground.body.immovable = true;
+
+    ground = platforms.create(400, game.world.height - 80, 'ground');
+    ground.body.immovable = true;
+
+    ground = platforms.create(800, game.world.height - 80, 'ground');
+    ground.body.immovable = true;
+
+    ground = platforms.create(1200, game.world.height - 80, 'ground');
+    ground.body.immovable = true;
+
+    var ground2 = platforms2.create(0, game.world.height - 48, 'ground2');
+    // ground.scale.setTo(1, 1);
+    ground.body.immovable = true;
+
+    ground2 = platforms2.create(400, game.world.height - 48, 'ground2');
+    // ground.scale.setTo(1, 1);
+    ground.body.immovable = true;
+
+    ground2 = platforms2.create(800, game.world.height - 48, 'ground2');
+    // ground.scale.setTo(1, 1);
+    ground.body.immovable = true;
+
+    ground2 = platforms2.create(1200, game.world.height - 48, 'ground2');
+    // ground.scale.setTo(1, 1);
+    ground.body.immovable = true;
+
+    ground2 = platforms2.create(0, game.world.height - 16, 'ground2');
+    // ground.scale.setTo(1, 1);
+    ground.body.immovable = true;
+
+    ground2 = platforms2.create(400, game.world.height - 16, 'ground2');
+    // ground.scale.setTo(1, 1);
+    ground.body.immovable = true;
+
+    ground2 = platforms2.create(800, game.world.height - 16, 'ground2');
+    // ground.scale.setTo(1, 1);
+    ground.body.immovable = true;
+
+    ground2 = platforms2.create(1200, game.world.height - 16, 'ground2');
+    // ground.scale.setTo(1, 1);
+    ground.body.immovable = true;
+
+   
 
     //  Now let's create two ledges
     if (game.level === 'level1') {
-    var ledge = platforms.create(400, 400, 'ground');
-    ledge.body.immovable = true;
+        var ledge = platforms.create(400, 400, 'ground');
+        ledge.body.immovable = true;
 
-    ledge = platforms.create(-150, 250, 'ground');
-    ledge.body.immovable = true;
+        ledge = platforms.create(-150, 250, 'ground');
+        ledge.body.immovable = true;
 
-    ledge = platforms.create(800, 300, 'ground');
-    ledge.body.immovable = true;
-    ledge.scale.setTo(1.25, 1);
+        ledge = platforms.create(800, 300, 'ground');
+        ledge.body.immovable = true;
+        ledge.scale.setTo(1.25, 1);
 
-    ledge = platforms.create(900, 268, 'ground');
-    ledge.body.immovable = true;
-    ledge.scale.setTo(1, 1);
+        ledge = platforms.create(900, 268, 'ground');
+        ledge.body.immovable = true;
+        ledge.scale.setTo(1, 1);
 
-    ledge = platforms.create(1000, 236, 'ground');
-    ledge.body.immovable = true;
-    ledge.scale.setTo(.75, 1);
+        ledge = platforms.create(1000, 236, 'ground');
+        ledge.body.immovable = true;
+        ledge.scale.setTo(.75, 1);
 
-    ledge = platforms.create(1100, 204, 'ground');
-    ledge.body.immovable = true;
-    ledge.scale.setTo(.5, 1);
+        ledge = platforms.create(1100, 204, 'ground');
+        ledge.body.immovable = true;
+        ledge.scale.setTo(.5, 1);
 
-    ledge = platforms.create(1200, 172, 'ground');
-    ledge.body.immovable = true;
-    ledge.scale.setTo(.25, 1);
+        ledge = platforms.create(1200, 172, 'ground');
+        ledge.body.immovable = true;
+        ledge.scale.setTo(.25, 1);
 
 
-    ledge = platforms.create(1000, 300, 'ground');
-    ledge.body.immovable = true;
-    ledge.scale.setTo(.25, 10);
+        ledge = vertPlatforms.create(1000, 300, 'vertPlatform');
+        ledge.body.immovable = true;
+        ledge.scale.setTo(1, 1);
 
-    ledge = platforms.create(1200, 450, 'ground');
-    ledge.body.immovable = true;
-    ledge.scale.setTo(1, 1);
+        ledge = vertPlatforms.create(1032, 300, 'vertPlatform');
+        ledge.body.immovable = true;
+        ledge.scale.setTo(1, 1);
 
-    ledge = platforms.create(1375, 350, 'ground');
-    ledge.body.immovable = true;
-    ledge.scale.setTo(.25, 1);
+        ledge = vertPlatforms.create(1064, 300, 'vertPlatform');
+        ledge.body.immovable = true;
+        ledge.scale.setTo(1, 1);
+
+        ledge = platforms.create(1200, 450, 'ground');
+        ledge.body.immovable = true;
+        ledge.scale.setTo(1, 1);
+
+        ledge = platforms.create(1375, 350, 'ground');
+        ledge.body.immovable = true;
+        ledge.scale.setTo(.25, 1);
     } else if (game.level === 'level2') {
         var ledge = platforms.create(850, 400, 'ground');
         ledge.body.immovable = true;
-        ledge.scale.setTo(3, 1);
+        ledge.scale.setTo(1, 1);
+
+        var ledge = platforms.create(950, 400, 'ground');
+        ledge.body.immovable = true;
+        ledge.scale.setTo(1, 1);
 
         ledge = platforms.create(450, 400, 'ground');
         ledge.body.immovable = true;
@@ -135,69 +198,89 @@ function create() {
         ledge.body.immovable = true;
         ledge.scale.setTo(.75, 1);
 
-        ledge = platforms.create(200, 400, 'ground');
+        ledge = vertPlatformsShort.create(200, 400, 'vertPlatformShort');
         ledge.body.immovable = true;
-        ledge.scale.setTo(0.1, 4);
+        ledge.scale.setTo(1, 1);
 
-        ledge = platforms.create(1000, 400, 'ground');
+        ledge = vertPlatformsShort.create(1000, 400, 'vertPlatformShort');
         ledge.body.immovable = true;
-        ledge.scale.setTo(0.1, 4);
+        ledge.scale.setTo(1, 1);
 
-        ledge = platforms.create(600, 400, 'ground');
+        ledge = vertPlatformsShort.create(600, 400, 'vertPlatformShort');
         ledge.body.immovable = true;
-        ledge.scale.setTo(0.1, 4);
+        ledge.scale.setTo(1, 1);
 
-        ledge = platforms.create(800, 250, 'ground');
+        ledge = platforms.create(800, 230, 'ground');
         ledge.body.immovable = true;
         ledge.scale.setTo(.75, 1);
 
-        ledge = platforms.create(400, 250, 'ground');
+        ledge = platforms.create(400, 230, 'ground');
         ledge.body.immovable = true;
         ledge.scale.setTo(.75, 1);
 
-        ledge = platforms.create(0, 250, 'ground');
+        ledge = platforms.create(0, 230, 'ground');
         ledge.body.immovable = true;
         ledge.scale.setTo(.75, 1);
 
-        ledge = platforms.create(200, 250, 'ground');
+        ledge = vertPlatformsShort.create(200, 230, 'vertPlatformShort');
         ledge.body.immovable = true;
-        ledge.scale.setTo(0.1, 3);
+        ledge.scale.setTo(1, 1);
 
-        ledge = platforms.create(1000, 250, 'ground');
+        ledge = vertPlatformsShort.create(1000, 230, 'vertPlatformShort');
         ledge.body.immovable = true;
-        ledge.scale.setTo(0.1, 3);
+        ledge.scale.setTo(1, 1);
 
-        ledge = platforms.create(600, 250, 'ground');
+        ledge = vertPlatformsShort.create(600, 230, 'vertPlatformShort');
         ledge.body.immovable = true;
-        ledge.scale.setTo(0.1, 3);
+        ledge.scale.setTo(1, 1);
 
-        ledge = platforms.create(1000, 100, 'ground');
+        ledge = platforms.create(1000, 80, 'ground');
         ledge.body.immovable = true;
         ledge.scale.setTo(.75, 1);
 
-        ledge = platforms.create(600, 100, 'ground');
+        ledge = platforms.create(600, 80, 'ground');
         ledge.body.immovable = true;
         ledge.scale.setTo(.75, 1);
 
-        ledge = platforms.create(200, 100, 'ground');
+        ledge = platforms.create(200, 80, 'ground');
         ledge.body.immovable = true;
         ledge.scale.setTo(.75, 1);
 
-        ledge = platforms.create(200, 50, 'ground');
+        ledge = vertPlatformsShort.create(200, 40, 'vertPlatformShort');
         ledge.body.immovable = true;
-        ledge.scale.setTo(0.1, 4);
+        ledge.scale.setTo(1, 1);
 
-        ledge = platforms.create(1000, 50, 'ground');
+        ledge = vertPlatformsShort.create(1000, 40, 'vertPlatformShort');
         ledge.body.immovable = true;
-        ledge.scale.setTo(0.1, 4);
+        ledge.scale.setTo(1, 1);
 
-        ledge = platforms.create(600, 50, 'ground');
+        ledge = vertPlatformsShort.create(600, 40, 'vertPlatformShort');
         ledge.body.immovable = true;
-        ledge.scale.setTo(0.1, 4);
+        ledge.scale.setTo(1, 1);
 
-        ledge = platforms.create(1200, 200, 'ground');
+        ledge = vertPlatformsShort.create(1200, 200, 'vertPlatformShort');
         ledge.body.immovable = true;
-        ledge.scale.setTo(2, 4);
+        ledge.scale.setTo(1, 1);
+
+        ledge = vertPlatformsShort.create(1232, 200, 'vertPlatformShort');
+        ledge.body.immovable = true;
+        ledge.scale.setTo(1, 1);
+
+        ledge = vertPlatformsShort.create(1264, 200, 'vertPlatformShort');
+        ledge.body.immovable = true;
+        ledge.scale.setTo(1, 1);
+
+        ledge = vertPlatformsShort.create(1296, 200, 'vertPlatformShort');
+        ledge.body.immovable = true;
+        ledge.scale.setTo(1, 1);
+
+        ledge = vertPlatformsShort.create(1328, 200, 'vertPlatformShort');
+        ledge.body.immovable = true;
+        ledge.scale.setTo(1, 1);
+
+        ledge = vertPlatformsShort.create(1360, 200, 'vertPlatformShort');
+        ledge.body.immovable = true;
+        ledge.scale.setTo(1, 1);
 
     } else {
 
@@ -215,11 +298,11 @@ function create() {
 
         baddieTwo = baddies.create(500, game.world.height - 400, 'baddie');
 
-        baddieThree = baddies.create(600, game.world.height - 200, 'baddie');
+        baddieThree = baddies.create(600, game.world.height - 130, 'baddie');
     } else if (game.level === 'level2') {
         baddieOne = baddies.create(1200, game.world.height - 300, 'baddie');
 
-        baddieTwo = baddies.create(800, game.world.height - 500, 'baddie');
+        baddieTwo = baddies.create(850, game.world.height - 500, 'baddie');
 
         baddieThree = baddies.create(600, game.world.height - 200, 'baddie');
     }
@@ -231,9 +314,15 @@ function create() {
     baddies.setAll('body.collideWorldBounds', true);
     
     baddies.forEach(function(baddie){
-        baddie.animations.add('badleft', [0, 1], 10, true);
-        baddie.animations.add('badright', [2, 3], 10, true);
+        baddie.animations.add('badleft', [0, 1, 2, 3 ,4 , 5], 10, true);
+        baddie.animations.add('badright', [0, 1, 2, 3, 4, 5], 10, true);
+        baddie.animations.add('badhit', [6], 10, true);
+        baddie.animations.add('badattack', [7, 8, 9], 10, false);
         baddie.hp = 3
+        baddie.body.setSize(50, 30, 0, 0);
+        baddie.name = 'baddie'
+        baddie.anchor.x = 0.5
+        baddie.anchor.y = 0.5
         enemiesAlive.push(baddie)
     })
 
@@ -249,7 +338,7 @@ function create() {
     } else if (game.level === 'level2') {
         flyerOne = flyers.create(500, game.world.height - 500, 'flyer');
 
-        flyerTwo = flyers.create(800, game.world.height - 400, 'flyer');
+        flyerTwo = flyers.create(800, game.world.height - 300, 'flyer');
 
         flyerThree = flyers.create(1200, game.world.height - 400, 'flyer');
     }
@@ -348,6 +437,7 @@ function create() {
 
     if (game.level === 'level1') {
         speedDirA = -50;
+        animationA = 'badright';
         directionIntervalA = setInterval(function() {
             if (goLeftA === true) {
                 // debugger
@@ -363,7 +453,8 @@ function create() {
         }, 1000) 
         intervals.push(directionIntervalA)
 
-        speedDirB = 50;
+        speedDirB = -50;
+        animationB = 'badright';
         directionIntervalB = setInterval(function() {
             if (goLeftB === true) {
                 // debugger
@@ -391,6 +482,7 @@ function create() {
 
     } else if (game.level === 'level2') {
         speedDirA = -50;
+        animationA = 'badright'
         directionIntervalA = setInterval(function() {
             if (goLeftA === true) {
                 // debugger
@@ -405,7 +497,8 @@ function create() {
 
         }, 1000) 
         intervals.push(directionIntervalA)
-        speedDirB = 50;
+        speedDirB = -50;
+        animationB = 'badright';
         directionIntervalB = setInterval(function() {
             if (goLeftB === true) {
                 // debugger
@@ -423,17 +516,17 @@ function create() {
 
         clearFlyerOne = setInterval(function() {
             fireEnemyBullet(flyerOne)
-        }, 250)
+        }, 254)
         intervals.push(clearFlyerOne)
 
         clearFlyerTwo = setInterval(function() {
             fireEnemyBullet(flyerTwo)
-        }, 325)
+        }, 374)
         intervals.push(clearFlyerTwo)
 
         clearFlyerThree = setInterval(function() {
             fireEnemyBullet(flyerThree)
-        }, 450)
+        }, 490)
         intervals.push(clearFlyerThree)
     }
 }
@@ -444,12 +537,22 @@ function update() {
 
     //  Collide the player and the stars with the platforms
     game.physics.arcade.collide(player, platforms);
+    game.physics.arcade.collide(player, vertPlatforms);
+    game.physics.arcade.collide(player, vertPlatformsShort);
     game.physics.arcade.collide(baddies, platforms);
+    game.physics.arcade.collide(baddies, vertPlatforms);
+    game.physics.arcade.collide(baddies, vertPlatformsShort);
     game.physics.arcade.collide(flyers, platforms);
+    game.physics.arcade.collide(flyers, vertPlatforms);
+    game.physics.arcade.collide(flyers, vertPlatformsShort);
     game.physics.arcade.collide(stars, platforms);
     game.physics.arcade.collide(player, baddies, killPlayer);
     game.physics.arcade.collide(player, flyers, killPlayer);
     game.physics.arcade.collide(bullets, platforms, resetBullet);
+
+    game.physics.arcade.collide(bullets, vertPlatforms, resetBullet);
+
+    game.physics.arcade.collide(bullets, vertPlatformsShort, resetBullet);
 
     game.physics.arcade.collide(bullets, enemyBullets, bulletOnBullet);
 
@@ -470,6 +573,11 @@ function update() {
 
     baddieOne.animations.play(animationA);
     baddieOne.body.velocity.x = speedDirA * 1.5;
+    if (speedDirA > 0) {
+            baddieOne.scale.x = -1;
+        } else {
+            baddieOne.scale.x = 1;
+    }
 
     baddieTwo.animations.play('badleft');
     if (baddieTwo.body.touching.down) {
@@ -477,8 +585,14 @@ function update() {
     }
 
 
+
     baddieThree.animations.play(animationB);
     baddieThree.body.velocity.x = speedDirB * 1.5;
+    if (speedDirB > 0) {
+            baddieThree.scale.x = -1;
+        } else {
+            baddieThree.scale.x = 1;
+        }
 
     flyerOne.animations.play('flyleft');
     flyerOne.body.velocity.x = speedDirB;
@@ -585,7 +699,10 @@ function update() {
 
     function killPlayer(player, baddieOrFlyer) { 
         baddieOrFlyer.body.velocity.x = 0
-        baddieOrFlyer.body.velocity.y = 0 
+        baddieOrFlyer.body.velocity.y = 0
+        if (baddieOrFlyer.name === 'baddie') {
+            baddieOrFlyer.animations.play('badattack')
+        } 
         if (!player.invincible) {
             player.animations.play('hit');
             hp -= 1;
@@ -682,6 +799,7 @@ function update() {
             enemiesAlive.splice(0,1)
             if (enemiesAlive.length <= 0) {
                 console.log('winner!')
+                hp = 5
                 intervals.forEach(function(interval) {
                     clearInterval(interval)
                 })
