@@ -402,6 +402,7 @@ function create() {
         boss.scale.x = 2
         boss.body.immovable = true
         boss.hp = 99
+        boss.name = 'boss'
 
         
         boss.animations.add('firstForm', [0, 1, 2, 3, 4], 10, true);
@@ -993,7 +994,7 @@ function update() {
             }, 200)
         }
         boss.hp -= 1
-        if (boss.hp <= 0) {
+        if (boss.hp <= 0 && boss.name === 'boss') {
             boss.kill();
             score += 3000
             scoreText.text = 'Score: ' + score;
