@@ -23,7 +23,7 @@ function preload() {
     game.load.atlasJSONHash('boss', 'assets/boss.png', 'assets/boss.json');
 
     game.load.atlasJSONHash('char', 'assets/char.png', 'assets/char.json');
-    game.level = 'level1'
+    game.level = 'boss'
 
 }
 
@@ -296,13 +296,29 @@ function create() {
 
     } else {
 
-        ledge = platforms.create(50, 400, 'ground');
+        ledge = platforms.create(50, 450, 'ground');
         ledge.body.immovable = true;
         ledge.scale.setTo(.75, 1);
 
-        ledge = platforms.create(50, 200, 'ground');
+        ledge = platforms.create(50, 300, 'ground');
         ledge.body.immovable = true;
         ledge.scale.setTo(.75, 1);
+
+        ledge = platforms.create(1100, 450, 'ground');
+        ledge.body.immovable = true;
+        ledge.scale.setTo(.75, 1);
+
+        ledge = platforms.create(1100, 300, 'ground');
+        ledge.body.immovable = true;
+        ledge.scale.setTo(.75, 1);
+
+        ledge = vertPlatformsShort.create(125, 200, 'vertPlatformShort');
+        ledge.body.immovable = true;
+        ledge.scale.setTo(1, 1);
+
+        // ledge = vertPlatformsShort.create(300, 450, 'vertPlatformShort');
+        // ledge.body.immovable = true;
+        // ledge.scale.setTo(1, 1);
 
 
     }
@@ -620,6 +636,10 @@ function update() {
     game.physics.arcade.collide(player, flyers, killPlayer);
     game.physics.arcade.collide(bullets, platforms, resetBullet);
 
+    game.physics.arcade.collide(bossBullets, platforms, resetBullet);
+
+    game.physics.arcade.collide(bossBullets, vertPlatformsShort, resetBullet);
+
     game.physics.arcade.collide(bullets, vertPlatforms, resetBullet);
 
     game.physics.arcade.collide(bullets, vertPlatformsShort, resetBullet);
@@ -629,6 +649,8 @@ function update() {
     game.physics.arcade.overlap(bullets, baddies, collisionHandler, null, this);
 
     game.physics.arcade.overlap(enemyBullets, player, killPlayerFromBullet, null, this);
+
+    game.physics.arcade.overlap(bossBullets, player, killPlayerFromBullet, null, this);
 
     game.physics.arcade.overlap(bullets, flyers, collisionHandler, null, this);
 
