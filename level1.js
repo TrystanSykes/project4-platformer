@@ -28,6 +28,8 @@ function preload() {
 
 }
 
+
+
 var music;
 
 var player;
@@ -65,6 +67,8 @@ var scoreText;
 
 var hp = 5;
 var hpText;
+
+var welcomeText;
 
 var goLeftA = false
 var goLeftB = true
@@ -214,15 +218,15 @@ function create() {
         ledge.body.immovable = true;
         ledge.scale.setTo(.75, 1);
 
-        ledge = vertPlatformsShort.create(200, 400, 'vertPlatformShort');
+        ledge = vertPlatformsShort.create(190, 400, 'vertPlatformShort');
         ledge.body.immovable = true;
         ledge.scale.setTo(1, 1);
 
-        ledge = vertPlatformsShort.create(1000, 400, 'vertPlatformShort');
+        ledge = vertPlatformsShort.create(990, 400, 'vertPlatformShort');
         ledge.body.immovable = true;
         ledge.scale.setTo(1, 1);
 
-        ledge = vertPlatformsShort.create(600, 400, 'vertPlatformShort');
+        ledge = vertPlatformsShort.create(590, 400, 'vertPlatformShort');
         ledge.body.immovable = true;
         ledge.scale.setTo(1, 1);
 
@@ -238,15 +242,15 @@ function create() {
         ledge.body.immovable = true;
         ledge.scale.setTo(.75, 1);
 
-        ledge = vertPlatformsShort.create(200, 230, 'vertPlatformShort');
+        ledge = vertPlatformsShort.create(190, 230, 'vertPlatformShort');
         ledge.body.immovable = true;
         ledge.scale.setTo(1, 1);
 
-        ledge = vertPlatformsShort.create(1000, 230, 'vertPlatformShort');
+        ledge = vertPlatformsShort.create(990, 230, 'vertPlatformShort');
         ledge.body.immovable = true;
         ledge.scale.setTo(1, 1);
 
-        ledge = vertPlatformsShort.create(600, 230, 'vertPlatformShort');
+        ledge = vertPlatformsShort.create(590, 230, 'vertPlatformShort');
         ledge.body.immovable = true;
         ledge.scale.setTo(1, 1);
 
@@ -262,15 +266,15 @@ function create() {
         ledge.body.immovable = true;
         ledge.scale.setTo(.75, 1);
 
-        ledge = vertPlatformsShort.create(200, 40, 'vertPlatformShort');
+        ledge = vertPlatformsShort.create(190, 40, 'vertPlatformShort');
         ledge.body.immovable = true;
         ledge.scale.setTo(1, 1);
 
-        ledge = vertPlatforms.create(600, 80, 'vertPlatform');
+        ledge = vertPlatforms.create(590, 80, 'vertPlatform');
         ledge.body.immovable = true;
         ledge.scale.setTo(1, 1);
 
-        ledge = vertPlatformsShort.create(1000, 40, 'vertPlatformShort');
+        ledge = vertPlatformsShort.create(990, 40, 'vertPlatformShort');
         ledge.body.immovable = true;
         ledge.scale.setTo(1, 1);
 
@@ -818,7 +822,15 @@ function update() {
             hp -= 1;
             hpText.text = 'Hp: ' + hp;
             if ( hp <= 0) {
-            player.kill();
+                player.kill();
+                score = 0
+                hp = 5
+                game.level = 'level1'
+                intervals.forEach(function(interval) {
+                        clearInterval(interval)
+                })
+                enemiesAlive = []
+                create();
             }
             toggleInvincible();             
             game.time.events.add(2000, toggleInvincible, this);
@@ -832,7 +844,15 @@ function update() {
             hp -= 1;
             hpText.text = 'Hp: ' + hp;
             if ( hp <= 0) {
-            player.kill();
+                player.kill();
+                score = 0
+                hp = 5
+                game.level = 'level1'
+                intervals.forEach(function(interval) {
+                        clearInterval(interval)
+                })
+                enemiesAlive = []
+                create();
             }
             toggleInvincible();             
             game.time.events.add(2000, toggleInvincible, this);
@@ -975,6 +995,20 @@ function update() {
         boss.hp -= 1
         if (boss.hp <= 0) {
             boss.kill();
+            score += 3000
+            scoreText.text = 'Score: ' + score;
+            hpText.text = "Congratulations on beating the game!"
+            setTimeout(function(){
+                player.kill();
+                score = 0
+                hp = 5
+                game.level = 'level1'
+                intervals.forEach(function(interval) {
+                        clearInterval(interval)
+                })
+                enemiesAlive = []
+                create();
+            }, 10000)
             console.log('winner!')
             intervals.forEach(function(interval) {
                 clearInterval(interval)
