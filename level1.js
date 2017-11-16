@@ -12,6 +12,7 @@ function preload() {
     game.load.image('star', 'assets/star.png');
     game.load.image('bullet', 'assets/bullet.png');
     game.load.image('enemyBullet', 'assets/enemyBullet.png');
+    game.load.image('bossBullet', 'assets/bossBullet.png');
     game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
     // game.load.spritesheet('baddie', 'assets/baddie.png', 32, 32);
 
@@ -19,8 +20,10 @@ function preload() {
 
     game.load.atlasJSONHash('flyer', 'assets/flyer.png', 'assets/flyer.json');
 
+    game.load.atlasJSONHash('boss', 'assets/boss.png', 'assets/boss.json');
+
     game.load.atlasJSONHash('char', 'assets/char.png', 'assets/char.json');
-    game.level = 'level1'
+    game.level = 'boss'
 
 }
 
@@ -31,6 +34,7 @@ var baddiesThree;
 var flyerOne;
 var flyerTwo;
 var flyerThree;
+var boss;
 var platforms;
 var cursors;
 
@@ -46,6 +50,10 @@ var bullet;
 var enemyBullet;
 var enemyBullets; 
 var enemyBulletTime = 0; 
+
+var bossBullet;
+var bossBullets; 
+var bossBulletTime = 0; 
 
 var stars;
 var score = 0;
@@ -63,6 +71,10 @@ var speedDirB = 0
 var clearFlyerOne
 var clearFlyerTwo
 var playerFacingLeft = false
+var velocity = 100
+var posOrNegX = 1
+var posOrNegY = -1
+var posOrNegArray = [1, -1, 1, -1]
 
 function create() {
 
@@ -250,11 +262,11 @@ function create() {
         ledge.body.immovable = true;
         ledge.scale.setTo(1, 1);
 
-        ledge = vertPlatformsShort.create(1000, 40, 'vertPlatformShort');
+        ledge = vertPlatforms.create(600, 80, 'vertPlatform');
         ledge.body.immovable = true;
         ledge.scale.setTo(1, 1);
 
-        ledge = vertPlatformsShort.create(600, 40, 'vertPlatformShort');
+        ledge = vertPlatformsShort.create(1000, 40, 'vertPlatformShort');
         ledge.body.immovable = true;
         ledge.scale.setTo(1, 1);
 
@@ -284,6 +296,15 @@ function create() {
 
     } else {
 
+        ledge = platforms.create(50, 400, 'ground');
+        ledge.body.immovable = true;
+        ledge.scale.setTo(.75, 1);
+
+        ledge = platforms.create(50, 200, 'ground');
+        ledge.body.immovable = true;
+        ledge.scale.setTo(.75, 1);
+
+
     }
 
 
@@ -305,6 +326,8 @@ function create() {
         baddieTwo = baddies.create(850, game.world.height - 500, 'baddie');
 
         baddieThree = baddies.create(600, game.world.height - 200, 'baddie');
+    } else {
+
     }
 
     baddies.setAll('enableBody', true);
@@ -341,7 +364,34 @@ function create() {
         flyerTwo = flyers.create(800, game.world.height - 300, 'flyer');
 
         flyerThree = flyers.create(1200, game.world.height - 400, 'flyer');
-    }
+    } else {
+        boss = game.add.sprite(720, game.world.height - 375, 'boss');
+
+        boss.scale.setTo(2,2)
+        game.physics.arcade.enable(boss);
+
+        // boss.body.setSize(32, 40, 0, -5);
+        boss.anchor.x = 0.5
+        boss.anchor.y = 0.5
+        boss.scale.x = 2
+        boss.scale.x = 2
+        boss.body.immovable = true
+        boss.hp = 99
+
+        // player.body.bounce.y = 0.2;
+        // player.body.gravity.y = 300;
+        // player.body.collideWorldBounds = true;
+        // player.invincible = false
+
+        //  Our two animations, walking left and right.
+        boss.animations.add('firstForm', [0, 1, 2, 3, 4], 10, true);
+        boss.animations.add('transform', [5, 6, 7, 8, 9, 10, 11, 12], 10, false);
+
+        boss.animations.add('secondForm', [13, 14, 15, 16, 17, 18, 19, 20, 21, 22], 10, true);
+
+        boss.animations.add('finalForm', [24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35], 10, true);
+
+        }
 
     flyers.setAll('enableBody', true);
     flyers.physicsBodyType = Phaser.Physics.ARCADE;
@@ -374,11 +424,20 @@ function create() {
     enemyBullets = game.add.group();
     enemyBullets.enableBody = true; 
     enemyBullets.physicsBodyType = Phaser.Physics.ARCADE; 
-    enemyBullets.createMultiple(30, 'enemyBullet');
+    enemyBullets.createMultiple(50, 'enemyBullet');
     enemyBullets.setAll('anchor.x', 0.5);
     enemyBullets.setAll('anchor.y', 1);
     enemyBullets.setAll('outOfBoundsKill', true);
     enemyBullets.setAll('checkWorldBounds', true);
+
+    bossBullets = game.add.group();
+    bossBullets.enableBody = true; 
+    bossBullets.physicsBodyType = Phaser.Physics.ARCADE; 
+    bossBullets.createMultiple(70, 'bossBullet');
+    bossBullets.setAll('anchor.x', 0.5);
+    bossBullets.setAll('anchor.y', 1);
+    bossBullets.setAll('outOfBoundsKill', true);
+    bossBullets.setAll('checkWorldBounds', true);
 
 
 
@@ -429,7 +488,7 @@ function create() {
     //  The score
     scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
 
-    hpText = game.add.text(180, 16, `hp: ${hp}`, { fontSize: '32px', fill: '#000' });
+    hpText = game.add.text(180, 16, `Hp: ${hp}`, { fontSize: '32px', fill: '#000' });
 
     //  Our controls.
     cursors = game.input.keyboard.createCursorKeys();
@@ -528,6 +587,16 @@ function create() {
             fireEnemyBullet(flyerThree)
         }, 490)
         intervals.push(clearFlyerThree)
+    } else {
+        clearBoss = setInterval(function() {
+            fireBossBullet(boss)
+        }, 75)
+        setInterval(function() {
+            posOrNegX = _.sample(posOrNegArray)
+            posOrNegY = _.sample(posOrNegArray)
+            fireTargetedBossBullet(boss)
+        }, 50)
+        intervals.push(clearBoss)
     }
 }
 
@@ -562,6 +631,8 @@ function update() {
 
     game.physics.arcade.overlap(bullets, flyers, collisionHandler, null, this);
 
+    game.physics.arcade.overlap(bullets, boss, bossCollisionHandler, null, this);
+
     //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
     game.physics.arcade.overlap(player, stars, collectStar, null, this);
 
@@ -570,55 +641,58 @@ function update() {
     player.body.velocity.x = 0;
 
 
+    if (baddieOne) {
+        baddieOne.animations.play(animationA);
+        baddieOne.body.velocity.x = speedDirA * 1.5;
+        if (speedDirA > 0) {
+                baddieOne.scale.x = -1;
+            } else {
+                baddieOne.scale.x = 1;
+        }
 
-    baddieOne.animations.play(animationA);
-    baddieOne.body.velocity.x = speedDirA * 1.5;
-    if (speedDirA > 0) {
-            baddieOne.scale.x = -1;
-        } else {
-            baddieOne.scale.x = 1;
-    }
-
-    baddieTwo.animations.play('badleft');
-    if (baddieTwo.body.touching.down) {
-        baddieTwo.body.velocity.y = -250;
-    }
+        baddieTwo.animations.play('badleft');
+        if (baddieTwo.body.touching.down) {
+            baddieTwo.body.velocity.y = -250;
+        }
 
 
 
-    baddieThree.animations.play(animationB);
-    baddieThree.body.velocity.x = speedDirB * 1.5;
-    if (speedDirB > 0) {
+        baddieThree.animations.play(animationB);
+        baddieThree.body.velocity.x = speedDirB * 1.5;
+        if (speedDirB > 0) {
             baddieThree.scale.x = -1;
         } else {
             baddieThree.scale.x = 1;
         }
-
-    flyerOne.animations.play('flyleft');
-    flyerOne.body.velocity.x = speedDirB;
-    flyerOne.body.velocity.y = speedDirA;
-    if (speedDirB > 0) {
-        flyerOne.scale.x = -1;
-    } else {
-        flyerOne.scale.x = 1;
     }
 
-    if (flyerOne.hp <= 0) {
-        clearInterval(clearFlyerOne)
-    }
+    if (flyerOne) {
+        flyerOne.animations.play('flyleft');
+        flyerOne.body.velocity.x = speedDirB;
+        flyerOne.body.velocity.y = speedDirA;
+        if (speedDirB > 0) {
+            flyerOne.scale.x = -1;
+        } else {
+            flyerOne.scale.x = 1;
+        }
+
+        if (flyerOne.hp <= 0) {
+            clearInterval(clearFlyerOne)
+        }
 
 
-    flyerTwo.animations.play('flyleft');
-    flyerTwo.body.velocity.x = speedDirA;
-    flyerTwo.body.velocity.y = speedDirB;
-    if (speedDirA > 0) {
-        flyerTwo.scale.x = -1;
-    } else {
-        flyerTwo.scale.x = 1;
-    }
+        flyerTwo.animations.play('flyleft');
+        flyerTwo.body.velocity.x = speedDirA;
+        flyerTwo.body.velocity.y = speedDirB;
+        if (speedDirA > 0) {
+            flyerTwo.scale.x = -1;
+        } else {
+            flyerTwo.scale.x = 1;
+        }
 
-    if (flyerTwo.hp <= 0) {
-        clearInterval(clearFlyerTwo)
+        if (flyerTwo.hp <= 0) {
+            clearInterval(clearFlyerTwo)
+        }
     }
 
     if (flyerThree) {
@@ -633,6 +707,18 @@ function update() {
         }
         if (flyerThree.hp <= 0) {
             clearInterval(clearFlyerThree)
+        }
+    }
+
+    if (boss) {
+        if (boss.hp > 50) {
+            boss.animations.play('firstForm');
+        } else if (boss.hp < 66 && boss.hp >= 64) {
+            boss.animations.play('transform');
+        } else if (boss.hp < 64 && boss.hp > 33) {
+            boss.animations.play('secondForm');
+        } else {
+            boss.animations.play('finalForm');
         }
     }
 
@@ -773,6 +859,48 @@ function update() {
         }
     }
 
+    function fireBossBullet (boss) {
+
+        if (game.time.now > bossBulletTime) {
+            bossBullet = bossBullets.getFirstExists(false);
+
+            if (bossBullet) {
+                bossBullet.reset(boss.x  , boss.y );
+                bossBullet.body.velocity.x = velocity * (game.rnd.integerInRange(1, 30) / 10 * posOrNegX);
+                bossBullet.body.velocity.y = velocity * (game.rnd.integerInRange(1, 30) / 10 * posOrNegY);
+                // velocity += 10
+                // if (velocity > 20) {
+                //     velocity = 100
+                // }
+                // if (player.position.y > (enemy.position.y + 100)) {
+                //     if (enemy.body.velocity.y > 0) {
+                //         enemyBullet.body.velocity.y = enemy.body.velocity.y;
+                //     } else {
+                //         enemyBullet.body.velocity.y = (enemy.body.velocity.y * -1);
+                //     }
+                // }
+                bossBulletTime = game.time.now + 150;
+            }
+        }
+    }
+
+    function fireTargetedBossBullet (boss) {
+
+        if (game.time.now > bossBulletTime) {
+            bossBullet = bossBullets.getFirstExists(false);
+
+            if (bossBullet) {
+                bossBullet.reset(boss.x  , boss.y );
+                bossBullet.body.velocity.x = (boss.position.x - player.position.x) * -1;
+                bossBullet.body.velocity.y = (boss.position.y - player.position.y) * -1;
+                bossBullet.body.velocity.x = bossBullet.body.velocity.x / 3
+                bossBullet.body.velocity.y = bossBullet.body.velocity.y / 3
+                
+                bossBulletTime = game.time.now + 150;
+            }
+        }
+    }
+
 
     function resetBullet (bullet) {
 
@@ -815,6 +943,33 @@ function update() {
                 score += 100;
                 scoreText.text = 'Score: ' + score;
             }
+        }
+        
+    }
+
+    function bossCollisionHandler (boss, bullet) {
+
+        bullet.kill();
+        boss.tint = 0xff0000;
+        setInterval(function(){
+            boss.tint = 0xffffff;
+        }, 200)
+        boss.hp -= 1
+        if (boss.hp <= 0) {
+            boss.kill();
+            // enemiesAlive.splice(0,1)
+            // if (enemiesAlive.length <= 0) {
+            //     console.log('winner!')
+            //     hp = 5
+            //     intervals.forEach(function(interval) {
+            //         clearInterval(interval)
+            //     })
+            //     if (game.level === 'level1') {
+            //         game.level = 'level2'
+            //         create();
+            //     }
+            // }
+            
         }
         
     }
