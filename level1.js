@@ -23,7 +23,7 @@ function preload() {
     game.load.atlasJSONHash('boss', 'assets/boss.png', 'assets/boss.json');
 
     game.load.atlasJSONHash('char', 'assets/char.png', 'assets/char.json');
-    game.level = 'boss'
+    game.level = 'level1'
 
 }
 
@@ -591,12 +591,13 @@ function create() {
         clearBoss = setInterval(function() {
             fireBossBullet(boss)
         }, 75)
-        setInterval(function() {
+        clearBossTargeted = setInterval(function() {
             posOrNegX = _.sample(posOrNegArray)
             posOrNegY = _.sample(posOrNegArray)
             fireTargetedBossBullet(boss)
         }, 50)
         intervals.push(clearBoss)
+        intervals.push(clearBossTargeted)
     }
 }
 
@@ -934,6 +935,9 @@ function update() {
                 if (game.level === 'level1') {
                     game.level = 'level2'
                     create();
+                } else if (game.level === 'level2') {
+                    game.level = 'boss'
+                    create();
                 }
             }
             if (baddieOrFlyer.name === 'flyer') {
@@ -957,19 +961,12 @@ function update() {
         boss.hp -= 1
         if (boss.hp <= 0) {
             boss.kill();
-            // enemiesAlive.splice(0,1)
-            // if (enemiesAlive.length <= 0) {
-            //     console.log('winner!')
-            //     hp = 5
-            //     intervals.forEach(function(interval) {
-            //         clearInterval(interval)
-            //     })
-            //     if (game.level === 'level1') {
-            //         game.level = 'level2'
-            //         create();
-            //     }
-            // }
+            console.log('winner!')
+            intervals.forEach(function(interval) {
+                clearInterval(interval)
+            })
             
         }
-        
+            
     }
+        
