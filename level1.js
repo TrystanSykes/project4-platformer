@@ -10,6 +10,7 @@ function preload() {
     game.load.image('vertPlatform', 'assets/vertplatform.png')
     game.load.image('vertPlatformShort', 'assets/vertplatformshort.png')
     game.load.image('star', 'assets/star.png');
+    game.load.image('firstAid', 'assets/firstaid.png');
     game.load.image('bullet', 'assets/bullet.png');
     game.load.image('enemyBullet', 'assets/enemyBullet.png');
     game.load.image('bossBullet', 'assets/bossBullet.png');
@@ -23,7 +24,7 @@ function preload() {
     game.load.atlasJSONHash('boss', 'assets/boss.png', 'assets/boss.json');
 
     game.load.atlasJSONHash('char', 'assets/char.png', 'assets/char.json');
-    game.level = 'boss'
+    game.level = 'level1'
 
 }
 
@@ -55,7 +56,8 @@ var bossBullet;
 var bossBullets; 
 var bossBulletTime = 0; 
 
-var stars;
+var healthBoosters;
+var healthBooster
 var score = 0;
 var scoreText;
 
@@ -304,11 +306,15 @@ function create() {
         ledge.body.immovable = true;
         ledge.scale.setTo(.75, 1);
 
-        ledge = platforms.create(1100, 450, 'ground');
+        ledge = platforms.create(1100, 425, 'ground');
         ledge.body.immovable = true;
         ledge.scale.setTo(.75, 1);
 
-        ledge = platforms.create(1100, 300, 'ground');
+        ledge = vertPlatformsShort.create(1100, 375, 'vertPlatformShort');
+        ledge.body.immovable = true;
+        ledge.scale.setTo(1, 1);
+
+        ledge = platforms.create(1100, 275, 'ground');
         ledge.body.immovable = true;
         ledge.scale.setTo(.75, 1);
 
@@ -316,9 +322,7 @@ function create() {
         ledge.body.immovable = true;
         ledge.scale.setTo(1, 1);
 
-        // ledge = vertPlatformsShort.create(300, 450, 'vertPlatformShort');
-        // ledge.body.immovable = true;
-        // ledge.scale.setTo(1, 1);
+        
 
 
     }
@@ -385,8 +389,7 @@ function create() {
 
         boss.scale.setTo(2,2)
         game.physics.arcade.enable(boss);
-
-        // boss.body.setSize(32, 40, 0, -5);
+        boss.body.setSize(75, 75, 0, 0)
         boss.anchor.x = 0.5
         boss.anchor.y = 0.5
         boss.scale.x = 2
@@ -394,12 +397,7 @@ function create() {
         boss.body.immovable = true
         boss.hp = 99
 
-        // player.body.bounce.y = 0.2;
-        // player.body.gravity.y = 300;
-        // player.body.collideWorldBounds = true;
-        // player.invincible = false
-
-        //  Our two animations, walking left and right.
+        
         boss.animations.add('firstForm', [0, 1, 2, 3, 4], 10, true);
         boss.animations.add('transform', [5, 6, 7, 8, 9, 10, 11, 12], 10, false);
 
@@ -472,6 +470,7 @@ function create() {
     player.body.gravity.y = 300;
     player.body.collideWorldBounds = true;
     player.invincible = false
+    player.scale.x = -1;
 
     //  Our two animations, walking left and right.
     player.animations.add('left', [3, 4, 5, 6], 10, true);
@@ -482,24 +481,23 @@ function create() {
 
 
 
-    // //  Finally some stars to collect
-    // stars = game.add.group();
+    //  Finally some stars to collect
+    healthBoosters = game.add.group();
 
-    // //  We will enable physics for any star that is created in this group
-    // stars.enableBody = true;
+    //  We will enable physics for any star that is created in this group
+    healthBoosters.enableBody = true;
 
-    // //  Here we'll create 12 of them evenly spaced apart
-    // for (var i = 0; i < 12; i++)
-    // {
-    //     //  Create a star inside of the 'stars' group
-    //     var star = stars.create(i * 70, 0, 'star');
+   
+    
+    clearHealth = setTimeout(function() {  
+        healthBooster = healthBoosters.create(game.rnd.integerInRange(1, 30) * 40, game.rnd.integerInRange(1, 30) * 15, 'firstAid');
+        healthBooster.body.gravity.y = 300;
+        healthBooster.body.bounce.y = 0.7 + Math.random() * 0.2;
+    }, game.rnd.integerInRange(15000, 25000))
+    intervals.push(clearHealth)
+  
+    
 
-    //     //  Let gravity do its thing
-    //     star.body.gravity.y = 300;
-
-    //     //  This just gives each star a slightly random bounce value
-    //     star.body.bounce.y = 0.7 + Math.random() * 0.2;
-    // }
 
     //  The score
     scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
@@ -631,7 +629,7 @@ function update() {
     game.physics.arcade.collide(flyers, platforms);
     game.physics.arcade.collide(flyers, vertPlatforms);
     game.physics.arcade.collide(flyers, vertPlatformsShort);
-    game.physics.arcade.collide(stars, platforms);
+    game.physics.arcade.collide(healthBoosters, platforms);
     game.physics.arcade.collide(player, baddies, killPlayer);
     game.physics.arcade.collide(player, flyers, killPlayer);
     game.physics.arcade.collide(bullets, platforms, resetBullet);
@@ -657,7 +655,7 @@ function update() {
     game.physics.arcade.overlap(bullets, boss, bossCollisionHandler, null, this);
 
     //  Checks to see if the player overlaps with any of the stars, if he does call the collectStar function
-    game.physics.arcade.overlap(player, stars, collectStar, null, this);
+    game.physics.arcade.overlap(player, healthBoosters, collectHealth, null, this);
 
    
     //  Reset the players velocity (movement)
@@ -795,14 +793,15 @@ function update() {
     }
     }
 
-    function collectStar (player, star) {
+    function collectHealth (player, healthBooster) {
         
-        // Removes the star from the screen
-        star.kill();
+        
+        healthBooster.kill();
 
-        //  Add and update the score
-        score += 10;
-        scoreText.text = 'Score: ' + score;
+        
+        hp = 5;
+        hpText.text = 'Hp: ' + hp;
+        
 
     }
 
@@ -849,7 +848,7 @@ function update() {
 
             if (bullet) {
                 player.animations.play('attack');
-                bullet.reset(player.x , player.y - 15);
+                bullet.reset(player.x - 15 , player.y -15);
                 if (playerFacingLeft === true) {
                     bullet.body.velocity.x = -300;
                     bulletTime = game.time.now + 150;
@@ -891,17 +890,6 @@ function update() {
                 bossBullet.reset(boss.x  , boss.y );
                 bossBullet.body.velocity.x = velocity * (game.rnd.integerInRange(1, 30) / 10 * posOrNegX);
                 bossBullet.body.velocity.y = velocity * (game.rnd.integerInRange(1, 30) / 10 * posOrNegY);
-                // velocity += 10
-                // if (velocity > 20) {
-                //     velocity = 100
-                // }
-                // if (player.position.y > (enemy.position.y + 100)) {
-                //     if (enemy.body.velocity.y > 0) {
-                //         enemyBullet.body.velocity.y = enemy.body.velocity.y;
-                //     } else {
-                //         enemyBullet.body.velocity.y = (enemy.body.velocity.y * -1);
-                //     }
-                // }
                 bossBulletTime = game.time.now + 150;
             }
         }
@@ -975,11 +963,13 @@ function update() {
 
     function bossCollisionHandler (boss, bullet) {
 
-        bullet.kill();
-        boss.tint = 0xff0000;
-        setInterval(function(){
-            boss.tint = 0xffffff;
-        }, 200)
+        if (boss.body.velocity.x === 0) { 
+            bullet.kill();
+            boss.tint = 0xff0000;
+            setInterval(function(){
+                boss.tint = 0xffffff;
+            }, 200)
+        }
         boss.hp -= 1
         if (boss.hp <= 0) {
             boss.kill();
