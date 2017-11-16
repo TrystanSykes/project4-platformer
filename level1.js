@@ -28,6 +28,8 @@ function preload() {
 
 }
 
+var music;
+
 var player;
 var baddieOne;
 var baddieTwo;
