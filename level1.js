@@ -83,8 +83,15 @@ var velocity = 100
 var posOrNegX = 1
 var posOrNegY = -1
 var posOrNegArray = [1, -1, 1, -1]
+var cancelInvincible
+var cancelInvincible1
 
 function create() {
+
+
+
+
+
 
     //  We're going to be using physics, so enable the Arcade Physics system
     game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -476,7 +483,7 @@ function create() {
     player.body.bounce.y = 0.2;
     player.body.gravity.y = 300;
     player.body.collideWorldBounds = true;
-    player.invincible = false
+    player.invincible = player.invincible || false
     player.scale.x = -1;
 
     //  Our two animations, walking left and right.
@@ -620,7 +627,11 @@ function create() {
         intervals.push(clearBoss)
         intervals.push(clearBossTargeted)
     }
+
+    
 }
+
+
 
 
 
@@ -834,7 +845,8 @@ function update() {
                 create();
             }
             toggleInvincible();             
-            game.time.events.add(2000, toggleInvincible, this);
+            cancelInvincible = game.time.events.add(2000, toggleInvincible, this);
+            intervals.push(cancelInvincible)
         }
     }
 
@@ -855,8 +867,12 @@ function update() {
                 enemiesAlive = []
                 create();
             }
+            
             toggleInvincible();             
-            game.time.events.add(2000, toggleInvincible, this);
+            cancelInvincible1 = setTimeout(function(){
+              toggleInvincible()
+            }, 2000);
+            intervals.push(cancelInvincible1)
         }
     }
 
@@ -965,6 +981,15 @@ function update() {
                 intervals.forEach(function(interval) {
                     clearInterval(interval)
                 })
+                if (player.invincible) {
+                    toggleInvincible()
+                    if (cancelInvincible1) {
+                        clearTimeout(cancelInvincible1)
+                    }
+                    if (cancelInvincible) {
+                        clearTimeout(cancelInvincible)
+                    }
+                }
                 if (game.level === 'level1') {
                     game.level = 'level2'
                     create();
